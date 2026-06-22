@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Idées">
+<meta name="theme-color" content="#0d0d0f">
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>Frise d'Idées</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0d0d0f;
+  --surface: #141418;
+  --surface2: #1c1c22;
+  --border: #2a2a35;
+  --accent: #c8a96e;
+  --accent2: #7eb8c8;
+  --text: #e8e4dc;
+  --text-muted: #6e6a64;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; }
+
+/* ===== HEADER ===== */
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 16px;
+  padding-top: calc(12px + var(--safe-top));
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+}
+header h1 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--accent); }
+header h1 span { font-size: 0.75rem; color: var(--text-muted); font-weight: 400; font-family: 'DM Mono', monospace; display: block; }
+.header-btns { display: flex; gap: 8px; }
+
+/* ===== BUTTONS ===== */
+button { font-family: 'DM Mono', monospace; cursor: pointer; border: none; border-radius: 8px; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #0d0d0f; font-size: 0.75rem; padding: 8px 14px; font-weight: 500; }
+.btn-primary:active { background: #d9bb80; transform: scale(0.97); }
+.btn-ghost { background: transparent; color: var(--text-muted); border: 1px solid var(--border); font-size: 0.75rem; padding: 8px 12px; }
+.btn-ghost:active { border-color: var(--accent); color: var(--accent); }
+.btn-icon { background: transparent; color: var(--text-muted); border: 1px solid var(--border); width: 36px; height: 36px; border-radius: 8px; font-size: 1rem; display: flex; align-items: center; justify-content: center; padding: 0; }
+.btn-icon:active { border-color: var(--accent2); color: var(--accent2); }
+
+/* ===== MAIN LAYOUT ===== */
+#app {
+  position: fixed; inset: 0;
+  padding-top: calc(60px + var(--safe-top));
+  padding-bottom: var(--safe-bottom);
+  display: flex; flex-direction: column;
+}
+
+/* ===== PARKING STRIP ===== */
+#parking-zone {
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+  max-height: 200px;
+}
+#parking-zone.collapsed { max-height: 44px; }
+.parking-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 16px; cursor: pointer;
+}
+.parking-header h2 { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--text-muted); }
+.p-count { background: var(--accent); color: #0d0d0f; border-radius: 100px; font-size: 0.6rem; padding: 1px 7px; font-family: 'DM Mono', monospace; }
+.p-toggle { color: var(--text-muted); margin-left: auto; transition: transform 0.2s; font-size: 0.7rem; }
+#parking-zone.collapsed .p-toggle { transform: rotate(-90deg); }
+#parking-chips { display: flex; flex-wrap: wrap; gap: 6px; padding: 0 16px 12px; overflow-y: auto; max-height: 120px; }
+.chip {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 100px; padding: 5px 10px; font-size: 0.78rem;
+  display: flex; align-items: center; gap: 6px;
+}
+.chip-promote { font-size: 0.65rem; color: var(--accent2); cursor: pointer; }
+.chip-del { color: var(--text-muted); cursor: pointer; font-size: 0.8rem; }
+
+/* ===== CONTENT AREA ===== */
+#content { flex: 1; overflow: hidden; position: relative; }
+
+/* ===== PORTRAIT: CARD LIST ===== */
+#card-view {
+  position: absolute; inset: 0;
+  overflow-y: auto;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+.idea-card {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 16px;
+  display: flex; flex-direction: column; gap: 8px;
+  position: relative;
+}
+.idea-card .card-tag { font-family: 'DM Mono', monospace; font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+.idea-card .card-title { font-family: 'Playfair Display', serif; font-size: 1.05rem; font-weight: 700; }
+.idea-card .card-links { display: flex; flex-direction: column; gap: 4px; }
+.card-link { color: var(--accent2); font-size: 0.8rem; padding: 5px 0; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+.card-link::before { content: '↗'; font-size: 0.7rem; }
+.card-actions { position: absolute; top: 12px; right: 12px; display: flex; gap: 6px; }
+.card-action { width: 28px; height: 28px; border-radius: 6px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.7rem; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.card-action:active { border-color: var(--accent); color: var(--accent); }
+
+.card-index {
+  font-family: 'DM Mono', monospace;
+  font-size: 0.6rem; color: var(--text-muted);
+  position: absolute; bottom: 12px; right: 14px;
+}
+
+/* ===== LANDSCAPE: TIMELINE ===== */
+#timeline-view {
+  position: absolute; inset: 0;
+  overflow-x: auto; overflow-y: hidden;
+}
+#tl-canvas {
+  position: relative;
+  height: 100%;
+  min-width: 100%;
+}
+#tl-line {
+  position: absolute; top: 50%; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--border) 4%, var(--border) 96%, transparent);
+  transform: translateY(-50%); pointer-events: none;
+}
+#tl-line::after {
+  content: '';
+  position: absolute; right: 0; top: -3px;
+  border-left: 8px solid var(--border);
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+}
+.tl-dot {
+  position: absolute; top: 50%;
+  width: 10px; height: 10px;
+  background: var(--accent); border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.tl-bubble-wrap {
+  position: absolute;
+  display: flex; flex-direction: column; align-items: center;
+  transform: translateX(-50%);
+  touch-action: none;
+  cursor: grab;
+}
+.tl-bubble-wrap.above { bottom: 50%; padding-bottom: 20px; }
+.tl-bubble-wrap.below { top: 50%; padding-top: 20px; }
+.tl-bubble-wrap.above .tl-conn { order: 1; }
+.tl-bubble-wrap.above .tl-bubble { order: 0; }
+.tl-conn { width: 2px; height: 20px; background: var(--border); flex-shrink: 0; }
+.tl-bubble {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 12px 14px;
+  width: 160px; min-height: 80px;
+  display: flex; flex-direction: column; gap: 5px;
+  position: relative;
+}
+.tl-bubble:active { border-color: var(--accent2); }
+.tl-tag { font-family: 'DM Mono', monospace; font-size: 0.58rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--accent); }
+.tl-title { font-family: 'Playfair Display', serif; font-size: 0.88rem; font-weight: 700; word-break: break-word; }
+.tl-links { display: flex; flex-direction: column; gap: 3px; margin-top: 2px; }
+.tl-link { color: var(--accent2); font-size: 0.7rem; cursor: pointer; display: flex; align-items: center; gap: 4px; padding: 2px 0; }
+.tl-link::before { content: '↗'; font-size: 0.6rem; }
+.tl-bactions { position: absolute; top: 5px; right: 5px; display: flex; gap: 3px; }
+.tl-baction { width: 20px; height: 20px; border-radius: 4px; background: var(--surface); border: 1px solid var(--border); color: var(--text-muted); font-size: 0.6rem; display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; }
+.tl-baction:active { border-color: var(--accent); color: var(--accent); }
+
+#tl-add-btn {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 32px; height: 32px; border-radius: 50%;
+  background: var(--surface2); border: 1px dashed var(--border);
+  color: var(--text-muted); font-size: 1.1rem;
+  display: flex; align-items: center; justify-content: center; cursor: pointer; padding: 0; z-index: 5;
+}
+#tl-add-btn:active { border-color: var(--accent); color: var(--accent); }
+
+/* ===== EMPTY STATE ===== */
+.empty-state {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  text-align: center; opacity: 0.4; pointer-events: none;
+}
+.empty-state h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--text-muted); margin-bottom: 6px; }
+.empty-state p { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--text-muted); }
+
+/* ===== BOTTOM FAB ===== */
+#fab-bar {
+  position: fixed; bottom: calc(20px + var(--safe-bottom)); right: 16px;
+  display: flex; flex-direction: column; gap: 10px; z-index: 300;
+}
+.fab {
+  width: 52px; height: 52px; border-radius: 50%;
+  font-size: 1.4rem; font-weight: 300;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 4px 20px #0006; padding: 0;
+  cursor: pointer;
+}
+.fab-main { background: var(--accent); color: #0d0d0f; }
+.fab-main:active { transform: scale(0.93); }
+.fab-secondary { background: var(--surface2); border: 1px solid var(--border); color: var(--text-muted); font-size: 1rem; }
+.fab-secondary:active { border-color: var(--accent2); color: var(--accent2); }
+
+/* ===== MODALS ===== */
+.overlay {
+  position: fixed; inset: 0; background: #000b; backdrop-filter: blur(6px);
+  z-index: 900; display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none; transition: opacity 0.22s;
+}
+.overlay.open { opacity: 1; pointer-events: all; }
+.sheet {
+  background: var(--surface); border-radius: 20px 20px 0 0;
+  border-top: 1px solid var(--border);
+  padding: 20px 20px calc(20px + var(--safe-bottom));
+  width: 100%; max-height: 92vh; overflow-y: auto;
+  transform: translateY(30px); transition: transform 0.22s;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.overlay.open .sheet { transform: translateY(0); }
+.sheet-handle { width: 36px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto -4px; }
+.sheet h3 { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--accent); }
+.form-group { display: flex; flex-direction: column; gap: 6px; }
+.form-group label { font-family: 'DM Mono', monospace; font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-muted); }
+.form-group input, .form-group select, .form-group textarea {
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; color: var(--text); font-family: 'DM Sans', sans-serif;
+  font-size: 0.95rem; padding: 12px 14px; outline: none; width: 100%;
+  -webkit-appearance: none;
+}
+.form-group input:focus, .form-group select:focus { border-color: var(--accent); }
+.form-group select { background-image: none; }
+.links-editor { display: flex; flex-direction: column; gap: 8px; }
+.link-row { display: flex; gap: 8px; align-items: center; }
+.link-row input { flex: 1; }
+.sheet-footer { display: flex; gap: 8px; }
+.sheet-footer button { flex: 1; padding: 14px; font-size: 0.85rem; border-radius: 10px; }
+
+/* ===== EDITOR PANEL ===== */
+#editor-panel {
+  position: fixed; inset: 0;
+  background: var(--bg);
+  z-index: 800;
+  display: flex; flex-direction: column;
+  transform: translateX(100%);
+  transition: transform 0.28s cubic-bezier(0.4,0,0.2,1);
+}
+#editor-panel.open { transform: translateX(0); }
+.editor-nav {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 16px; padding-top: calc(14px + var(--safe-top));
+  background: var(--surface); border-bottom: 1px solid var(--border);
+}
+.editor-nav h3 { flex: 1; font-family: 'Playfair Display', serif; font-size: 1rem; color: var(--accent2); word-break: break-word; }
+.editor-toolbar {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  padding: 8px 12px; background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+}
+.toolbar-btn {
+  background: transparent; border: 1px solid var(--border);
+  color: var(--text-muted); padding: 6px 10px;
+  border-radius: 6px; font-family: 'DM Mono', monospace; font-size: 0.75rem;
+  white-space: nowrap; flex-shrink: 0;
+}
+.toolbar-btn:active { border-color: var(--accent2); color: var(--accent2); }
+#editor-body {
+  flex: 1; overflow-y: auto;
+  padding: 20px 16px;
+  outline: none;
+  font-family: 'DM Sans', sans-serif; font-size: 1rem; line-height: 1.75;
+  color: var(--text);
+}
+#editor-body h1, #editor-body h2, #editor-body h3 { font-family: 'Playfair Display', serif; color: var(--accent); margin: 14px 0 6px; }
+#editor-body a { color: var(--accent2); }
+#editor-body ul, #editor-body ol { padding-left: 20px; }
+#editor-body blockquote { border-left: 3px solid var(--accent); padding-left: 12px; color: var(--text-muted); font-style: italic; }
+#editor-body:empty::before { content: 'Développez votre idée ici…'; color: var(--text-muted); font-style: italic; pointer-events: none; }
+.editor-foot {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px calc(10px + var(--safe-bottom));
+  background: var(--surface); border-top: 1px solid var(--border);
+}
+.save-status { font-family: 'DM Mono', monospace; font-size: 0.7rem; color: var(--accent2); }
+
+/* ===== ORIENTATION SWITCH ===== */
+body.portrait #timeline-view { display: none; }
+body.portrait #card-view { display: flex; }
+body.landscape #card-view { display: none; }
+body.landscape #timeline-view { display: block; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Frise d'Idées <span id="view-label">vue cartes</span></h1>
+  <div class="header-btns">
+    <button class="btn-icon" onclick="openParkingModal()" title="Idée en attente">📌</button>
+  </div>
+</header>
+
+<div id="app">
+  <!-- PARKING -->
+  <div id="parking-zone">
+    <div class="parking-header" onclick="toggleParking()">
+      <h2>En attente</h2>
+      <span class="p-count" id="p-count">0</span>
+      <span class="p-toggle">▼</span>
+    </div>
+    <div id="parking-chips"></div>
+  </div>
+
+  <!-- CONTENT -->
+  <div id="content">
+    <!-- PORTRAIT: Cards -->
+    <div id="card-view"></div>
+    <!-- LANDSCAPE: Timeline -->
+    <div id="timeline-view">
+      <div id="tl-canvas">
+        <div id="tl-line"></div>
+        <button id="tl-add-btn" onclick="openBubbleModal()">+</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FABs -->
+<div id="fab-bar">
+  <button class="fab fab-secondary" onclick="openParkingModal()" title="Idée rapide">📌</button>
+  <button class="fab fab-main" onclick="openBubbleModal()">+</button>
+</div>
+
+<!-- MODAL: Nouvelle bulle -->
+<div class="overlay" id="bubble-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3 id="modal-title">Nouvelle idée</h3>
+    <div class="form-group">
+      <label>Titre</label>
+      <input type="text" id="b-title" placeholder="Mon idée..." maxlength="60" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Étiquette (optionnel)</label>
+      <input type="text" id="b-tag" placeholder="Projet, Réflexion..." maxlength="20" autocomplete="off">
+    </div>
+    <div class="form-group">
+      <label>Placement</label>
+      <select id="b-side">
+        <option value="above">Au-dessus de la frise</option>
+        <option value="below">En dessous de la frise</option>
+      </select>
+    </div>
+    <div class="form-group">
+      <label>Liens / Sous-idées</label>
+      <div class="links-editor" id="links-editor">
+        <div class="link-row">
+          <input type="text" placeholder="Nom du lien..." class="link-input" autocomplete="off">
+          <button class="btn-ghost" onclick="addLinkRow()" style="padding:10px 12px;flex-shrink:0">+</button>
+        </div>
+      </div>
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-ghost" onclick="closeModal('bubble-modal')">Annuler</button>
+      <button class="btn-primary" onclick="saveBubble()">Ajouter</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Parking -->
+<div class="overlay" id="parking-modal">
+  <div class="sheet">
+    <div class="sheet-handle"></div>
+    <h3>Idée en attente</h3>
+    <div class="form-group">
+      <label>Votre idée</label>
+      <input type="text" id="p-input" placeholder="Une idée à ne pas oublier..." maxlength="80" autocomplete="off">
+    </div>
+    <div class="sheet-footer">
+      <button class="btn-ghost" onclick="closeModal('parking-modal')">Annuler</button>
+      <button class="btn-primary" onclick="saveParking()">Mettre en attente</button>
+    </div>
+  </div>
+</div>
+
+<!-- EDITOR PANEL -->
+<div id="editor-panel">
+  <div class="editor-nav">
+    <button class="btn-icon" onclick="closeEditor()">←</button>
+    <h3 id="editor-title">Sous-idée</h3>
+  </div>
+  <div class="editor-toolbar">
+    <button class="toolbar-btn" onclick="execCmd('bold')"><b>G</b></button>
+    <button class="toolbar-btn" onclick="execCmd('italic')"><i>I</i></button>
+    <button class="toolbar-btn" onclick="execCmd('underline')"><u>S</u></button>
+    <button class="toolbar-btn" onclick="execCmd('insertUnorderedList')">•</button>
+    <button class="toolbar-btn" onclick="execCmd('insertOrderedList')">1.</button>
+    <button class="toolbar-btn" onclick="execCmd('formatBlock','h2')">H2</button>
+    <button class="toolbar-btn" onclick="execCmd('formatBlock','h3')">H3</button>
+    <button class="toolbar-btn" onclick="execCmd('formatBlock','blockquote')">"</button>
+    <button class="toolbar-btn" onclick="execCmd('removeFormat')">⌫</button>
+  </div>
+  <div id="editor-body" contenteditable="true"></div>
+  <div class="editor-foot">
+    <span class="save-status" id="save-status">● Sauvegardé</span>
+    <button class="btn-ghost" onclick="clearEditor()" style="font-size:0.7rem;padding:6px 10px;color:#c87e7e;border-color:#c87e7e33">Effacer</button>
+  </div>
+</div>
+
+<script>
+// ======= STATE =======
+let state = { bubbles: [], parking: [], nextId: 1, editingId: null, editorKey: null };
+
+function load() {
+  try { const s = localStorage.getItem('frise-idees-v2'); if (s) state = { ...state, ...JSON.parse(s) }; } catch(e) {}
+}
+function save() { localStorage.setItem('frise-idees-v2', JSON.stringify(state)); }
+
+// ======= ORIENTATION =======
+function updateOrientation() {
+  const isLandscape = window.innerWidth > window.innerHeight;
+  document.body.classList.toggle('landscape', isLandscape);
+  document.body.classList.toggle('portrait', !isLandscape);
+  document.getElementById('view-label').textContent = isLandscape ? 'vue frise' : 'vue cartes';
+  if (isLandscape) renderTimeline(); else renderCards();
+}
+window.addEventListener('resize', updateOrientation);
+window.addEventListener('orientationchange', () => setTimeout(updateOrientation, 100));
+
+// ======= RENDER =======
+function render() { save(); renderParking(); if (document.body.classList.contains('landscape')) renderTimeline(); else renderCards(); }
+
+function renderParking() {
+  const chips = document.getElementById('parking-chips');
+  document.getElementById('p-count').textContent = state.parking.length;
+  chips.innerHTML = '';
+  state.parking.forEach(p => {
+    const c = document.createElement('div');
+    c.className = 'chip';
+    c.innerHTML = `<span>${esc(p.text)}</span><span class="chip-promote" onclick="promoteParking('${p.id}')">→ frise</span><span class="chip-del" onclick="deleteParking('${p.id}')">✕</span>`;
+    chips.appendChild(c);
+  });
+}
+
+function renderCards() {
+  const view = document.getElementById('card-view');
+  view.innerHTML = '';
+  if (state.bubbles.length === 0) {
+    view.innerHTML = `<div class="empty-state"><h2>Aucune idée</h2><p>Appuyez sur + pour commencer</p></div>`;
+    return;
+  }
+  [...state.bubbles].sort((a,b) => (a.x||0)-(b.x||0)).forEach((b, i) => {
+    const card = document.createElement('div');
+    card.className = 'idea-card';
+    const links = b.links.map((l,li) => `<span class="card-link" onclick="openEditor('${b.id}',${li})">${esc(l.label)}</span>`).join('');
+    card.innerHTML = `
+      ${b.tag ? `<div class="card-tag">${esc(b.tag)}</div>` : ''}
+      <div class="card-title">${esc(b.title)}</div>
+      ${b.links.length ? `<div class="card-links">${links}</div>` : ''}
+      <div class="card-actions">
+        <button class="card-action" onclick="editBubble('${b.id}')">✎</button>
+        <button class="card-action" onclick="deleteBubble('${b.id}')">✕</button>
+      </div>
+      <div class="card-index">#${i+1}</div>
+    `;
+    view.appendChild(card);
+  });
+}
+
+function renderTimeline() {
+  const canvas = document.getElementById('tl-canvas');
+  canvas.querySelectorAll('.tl-bubble-wrap, .tl-dot').forEach(el => el.remove());
+  const addBtn = document.getElementById('tl-add-btn');
+
+  if (state.bubbles.length === 0) {
+    addBtn.style.left = '50%';
+    canvas.style.width = '100%';
+    return;
+  }
+
+  const GAP = 210, MARGIN = 80;
+  state.bubbles.forEach((b,i) => { if (b.x == null) b.x = MARGIN + i * GAP; });
+  state.bubbles.sort((a,b) => a.x - b.x);
+
+  const w = Math.max(MARGIN*2 + state.bubbles.length*GAP, document.getElementById('timeline-view').offsetWidth);
+  canvas.style.width = w + 'px';
+
+  state.bubbles.forEach(bubble => {
+    const dot = document.createElement('div');
+    dot.className = 'tl-dot';
+    dot.style.left = bubble.x + 'px';
+    canvas.appendChild(dot);
+
+    const wrap = document.createElement('div');
+    wrap.className = `tl-bubble-wrap ${bubble.side}`;
+    wrap.style.left = bubble.x + 'px';
+    if (bubble.side === 'above') { wrap.style.bottom = '50%'; wrap.style.top = 'auto'; }
+    else { wrap.style.top = '50%'; }
+
+    const conn = document.createElement('div'); conn.className = 'tl-conn';
+    const bel = document.createElement('div'); bel.className = 'tl-bubble';
+
+    const links = bubble.links.map((l,li) => `<span class="tl-link" onclick="openEditor('${bubble.id}',${li})">${esc(l.label)}</span>`).join('');
+    bel.innerHTML = `
+      ${bubble.tag ? `<div class="tl-tag">${esc(bubble.tag)}</div>` : ''}
+      <div class="tl-title">${esc(bubble.title)}</div>
+      <div class="tl-links">${links}</div>
+      <div class="tl-bactions">
+        <button class="tl-baction" onclick="editBubble('${bubble.id}')">✎</button>
+        <button class="tl-baction" onclick="deleteBubble('${bubble.id}')">✕</button>
+      </div>
+    `;
+
+    if (bubble.side === 'above') { wrap.appendChild(bel); wrap.appendChild(conn); }
+    else { wrap.appendChild(conn); wrap.appendChild(bel); }
+
+    makeDraggable(wrap, bubble);
+    canvas.insertBefore(wrap, addBtn);
+  });
+
+  const lastX = Math.max(...state.bubbles.map(b => b.x));
+  addBtn.style.left = (lastX + 170) + 'px';
+}
+
+// ======= DRAG (touch + mouse) =======
+function makeDraggable(wrap, bubble) {
+  let startX, startBX, moved = false;
+
+  function start(cx) { startX = cx; startBX = bubble.x; moved = false; }
+  function move(cx) {
+    const dx = cx - startX;
+    if (Math.abs(dx) > 4) moved = true;
+    if (!moved) return;
+    bubble.x = Math.max(40, startBX + dx);
+    wrap.style.left = bubble.x + 'px';
+    // move dot
+    const dots = document.querySelectorAll('.tl-dot');
+    const idx = state.bubbles.indexOf(bubble);
+    if (dots[idx]) dots[idx].style.left = bubble.x + 'px';
+  }
+  function end() { if (moved) render(); }
+
+  wrap.addEventListener('mousedown', e => {
+    if (e.target.closest('.tl-bactions, .tl-link')) return;
+    e.preventDefault(); start(e.clientX);
+    const mm = e2 => move(e2.clientX);
+    const mu = () => { end(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+    window.addEventListener('mousemove', mm);
+    window.addEventListener('mouseup', mu);
+  });
+
+  wrap.addEventListener('touchstart', e => {
+    if (e.target.closest('.tl-bactions, .tl-link')) return;
+    start(e.touches[0].clientX);
+  }, { passive: true });
+  wrap.addEventListener('touchmove', e => {
+    move(e.touches[0].clientX);
+    if (moved) e.preventDefault();
+  }, { passive: false });
+  wrap.addEventListener('touchend', end);
+}
+
+// ======= BUBBLE MODAL =======
+function openBubbleModal() {
+  state.editingId = null;
+  document.getElementById('modal-title').textContent = 'Nouvelle idée';
+  document.getElementById('b-title').value = '';
+  document.getElementById('b-tag').value = '';
+  document.getElementById('b-side').value = 'above';
+  document.getElementById('links-editor').innerHTML = `<div class="link-row"><input type="text" class="link-input" placeholder="Nom du lien..." autocomplete="off"><button class="btn-ghost" onclick="addLinkRow()" style="padding:10px 12px;flex-shrink:0">+</button></div>`;
+  document.getElementById('bubble-modal').classList.add('open');
+  setTimeout(() => document.getElementById('b-title').focus(), 100);
+}
+
+function editBubble(id) {
+  const b = state.bubbles.find(b => b.id === id); if (!b) return;
+  state.editingId = id;
+  document.getElementById('modal-title').textContent = 'Modifier l\'idée';
+  document.getElementById('b-title').value = b.title;
+  document.getElementById('b-tag').value = b.tag || '';
+  document.getElementById('b-side').value = b.side;
+  const ed = document.getElementById('links-editor'); ed.innerHTML = '';
+  b.links.forEach(l => {
+    const row = document.createElement('div'); row.className = 'link-row';
+    row.innerHTML = `<input type="text" class="link-input" value="${esc(l.label)}" autocomplete="off"><button class="btn-ghost" onclick="addLinkRow()" style="padding:10px 12px;flex-shrink:0">+</button>`;
+    ed.appendChild(row);
+  });
+  if (!b.links.length) addLinkRow();
+  document.getElementById('bubble-modal').classList.add('open');
+}
+
+function addLinkRow() {
+  const ed = document.getElementById('links-editor');
+  const row = document.createElement('div'); row.className = 'link-row';
+  row.innerHTML = `<input type="text" class="link-input" placeholder="Nom du lien..." autocomplete="off"><button style="background:transparent;border:1px solid #c87e7e33;color:#c87e7e;padding:10px 10px;border-radius:8px;font-size:0.8rem;flex-shrink:0;cursor:pointer" onclick="this.parentElement.remove()">✕</button>`;
+  ed.appendChild(row);
+  row.querySelector('input').focus();
+}
+
+function saveBubble() {
+  const title = document.getElementById('b-title').value.trim(); if (!title) { document.getElementById('b-title').focus(); return; }
+  const tag = document.getElementById('b-tag').value.trim();
+  const side = document.getElementById('b-side').value;
+  const links = Array.from(document.querySelectorAll('#links-editor .link-input')).map(i => i.value.trim()).filter(Boolean).map(label => ({ label, content: '' }));
+
+  if (state.editingId) {
+    const b = state.bubbles.find(b => b.id === state.editingId); if (!b) return;
+    const old = b.links;
+    b.title = title; b.tag = tag; b.side = side;
+    b.links = links.map(l => ({ label: l.label, content: old.find(o => o.label === l.label)?.content || '' }));
+  } else {
+    const GAP = 210, MARGIN = 80;
+    const x = state.bubbles.length === 0 ? MARGIN : Math.max(...state.bubbles.map(b => b.x)) + GAP;
+    state.bubbles.push({ id: 'b' + state.nextId++, title, tag, side, x, links });
+  }
+  closeModal('bubble-modal');
+  render();
+}
+
+function deleteBubble(id) {
+  if (!confirm('Supprimer cette idée ?')) return;
+  state.bubbles = state.bubbles.filter(b => b.id !== id);
+  render();
+}
+
+// ======= PARKING =======
+function openParkingModal() {
+  document.getElementById('p-input').value = '';
+  document.getElementById('parking-modal').classList.add('open');
+  setTimeout(() => document.getElementById('p-input').focus(), 100);
+}
+function saveParking() {
+  const text = document.getElementById('p-input').value.trim(); if (!text) return;
+  state.parking.push({ id: 'p' + state.nextId++, text });
+  closeModal('parking-modal'); render();
+}
+function deleteParking(id) { state.parking = state.parking.filter(p => p.id !== id); render(); }
+function promoteParking(id) {
+  const p = state.parking.find(p => p.id === id); if (!p) return;
+  deleteParking(id);
+  document.getElementById('b-title').value = p.text;
+  document.getElementById('b-tag').value = '';
+  document.getElementById('b-side').value = 'above';
+  document.getElementById('links-editor').innerHTML = `<div class="link-row"><input type="text" class="link-input" placeholder="Nom du lien..." autocomplete="off"><button class="btn-ghost" onclick="addLinkRow()" style="padding:10px 12px;flex-shrink:0">+</button></div>`;
+  state.editingId = null;
+  document.getElementById('modal-title').textContent = 'Ajouter à la frise';
+  document.getElementById('bubble-modal').classList.add('open');
+}
+function toggleParking() { document.getElementById('parking-zone').classList.toggle('collapsed'); }
+
+// ======= EDITOR =======
+let saveTimer;
+function openEditor(bid, li) {
+  const b = state.bubbles.find(b => b.id === bid); if (!b) return;
+  const link = b.links[li]; if (!link) return;
+  state.editorKey = `${bid}-${li}`;
+  document.getElementById('editor-title').textContent = `${b.title} → ${link.label}`;
+  document.getElementById('editor-body').innerHTML = link.content || '';
+  document.getElementById('editor-panel').classList.add('open');
+  document.getElementById('save-status').textContent = '● Sauvegardé';
+}
+function closeEditor() { autoSave(); document.getElementById('editor-panel').classList.remove('open'); state.editorKey = null; }
+function autoSave() {
+  if (!state.editorKey) return;
+  const [bid, liStr] = state.editorKey.split('-');
+  const b = state.bubbles.find(b => b.id === bid); if (!b) return;
+  const li = parseInt(liStr); if (!b.links[li]) return;
+  b.links[li].content = document.getElementById('editor-body').innerHTML;
+  save();
+  document.getElementById('save-status').textContent = '● Sauvegardé';
+}
+document.getElementById('editor-body').addEventListener('input', () => {
+  document.getElementById('save-status').textContent = '○ Modifications…';
+  clearTimeout(saveTimer); saveTimer = setTimeout(autoSave, 800);
+});
+function clearEditor() { if (!confirm('Effacer le contenu ?')) return; document.getElementById('editor-body').innerHTML = ''; autoSave(); }
+function execCmd(cmd, val) { document.getElementById('editor-body').focus(); document.execCommand(cmd, false, val||null); }
+
+// ======= MODAL UTILS =======
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) closeModal(o.id); }));
+
+// ======= UTILS =======
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+// ======= SERVICE WORKER =======
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => navigator.serviceWorker.register('./sw.js'));
+}
+
+// ======= INIT =======
+load();
+updateOrientation();
+</script>
+</body>
+</html>
